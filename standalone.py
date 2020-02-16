@@ -54,7 +54,6 @@ def getpostmet():
             resp=make_response(pdf)
             resp.headers['Content-Type']="application/pdf"
             resp.headers['Content-Disposition']="inline;filename=Citations.pdf"
-            print("sent")
             return resp
         else:
             return render_template('upload.html')
