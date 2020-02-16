@@ -5,6 +5,14 @@ import io
 import json
 from reportlab.platypus import Table
 from reportlab.platypus import SimpleDocTemplate
+from reportlab.platypus import TableStyle
+from reportlab.lib import colors
+
+ts=TableStyle([
+    ('BACKGROUND',(0,0),(-1,0),colors.blue),
+    ('TEXTCOLOR',(0,0),(-1,0),colors.whitesmoke),
+    ('GRID',(0,0),(-1,-1),1,colors.black)
+])
 
 app = Flask(__name__)
 
@@ -23,7 +31,7 @@ def getpostmet():
             file.stream.seek(0)
             myfile=file.read().decode("utf-8")
             data=csv.reader(myfile.split('\n'),delimiter=',')
-            generated=[]
+            generated=[["Name","ORCID","Citation"]]
             for info in data:
 
                 if(info and len(info)!=0 and info[1] and len(info[1])!=0 and info[0] and len(info[0])!=0):
@@ -36,10 +44,9 @@ def getpostmet():
                         print(info[0],"error")
                     else:
                         print(info[0],respdat['author-retrieval-response'][0]['coredata']['citation-count'])
-                        generated.append([info[0]+" ",respdat['author-retrieval-response'][0]['coredata']['citation-count']])
-
-
+                        generated.append([info[0],info[1],respdat['author-retrieval-response'][0]['coredata']['citation-count']])
             table=Table(generated)
+            table.setStyle(ts)
             pdfcreator=SimpleDocTemplate(buf)
             pdfcreator.build([table])
             pdf=buf.getvalue()
