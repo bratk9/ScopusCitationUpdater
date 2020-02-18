@@ -18,7 +18,17 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
         integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous">
     </script>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
 
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- Popper JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 
     <title>
         Scopus Citation Updator
@@ -161,6 +171,29 @@
             });
         });
     </script>
+    <script>
+        $(document).ready(function () {
+            $("#go").click(function () {
+                $.getJSON("http://localhost:5000/Search", {
+                        orcid: $('#ORCID').val()
+                    },
+                    function (data) {
+                        if (data.result.stat === "success")
+                            $('#src').empty()
+                        $('#src').append(`
+                        <div class="card" style=100%>
+                            <div class="card-body">
+                                <h4 class="card-title">` + data.result.indn + `</h4>
+                                <p class="card-text">Affiliation:<br>` + data.result.aff + `</p>
+                                <p class="card-text">Address:<br>` + data.result.addr + `</p>
+                                <p class="card-text">Citations:<br>` + data.result.cit + `</p>
+                                <p class="card-text">Area Of Intrest:<br>` + data.result.aoe + `</p>
+                            </div>
+                        </div>`)
+                    });
+            })
+        })
+    </script>
 </head>
 
 <body>
@@ -189,6 +222,21 @@
             </div>
 
         </form>
+    </div>
+    <div class="container form-div">
+        <form class="name-search">
+            <div class="block">
+                <div class="element">
+                    <input type="text" class="txt-input" name="ORCID" id="ORCID" placeholder="Orcid" />
+                </div>
+            </div>
+            <div class="block">
+                <div class="btn-element">
+                    <button class="btn btn-primary" type="button" id="go">Go</button>
+                </div>
+            </div>
+        </form>
+        <div id="src"></div>
     </div>
 </body>
 
