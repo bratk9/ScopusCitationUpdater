@@ -175,8 +175,13 @@
     <script>
         $(document).ready(function () {
             $("#go").click(function () {
+                var radioValue = $("input[name='gender']:checked").val();
+                if(radioValue){
+                    
+                }
                 $.getJSON("http://localhost:5000/Search", {
-                        orcid: $('#ORCID').val()
+                        orcid: $('#ORCID').val(),
+                        inputoptions:radioValue
                     },
                     function (data) {
                         if (data.result.stat === "success") {
@@ -188,11 +193,11 @@
                                 <p class="card-text">Affiliation:<br>` + data.result.aff + `</p>
                                 <p class="card-text">Address:<br>` + data.result.addr + `</p>
                                 <p class="card-text">Citations:<br>` + data.result.cit + `</p>
-                                <p class="card-text">Area Of Interest:<br>` + data.result.aoe + `</p>
+                                <p class="card-text">Areas Of Interest:<br>` + data.result.aoe + `</p>
                             </div>
                         </div>`)
                         } else {
-                            alert("Data invalid")
+                            alert("ID invalid")
                         }
                     });
             })
@@ -219,6 +224,23 @@
         $(document).ready(function () {
             $("#table_interface").submit(function () {
                 $('#wait_pls').css("visibility", "visible")
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function(){
+            $("input[name='gender']").click(function(){
+                var radioValue = $("input[name='gender']:checked").val();
+                if(radioValue==="o"){
+                    $("input[name='ORCID']:text").attr('placeholder',"ORCID");
+                }
+                else if(radioValue==="a"){
+                    $("input[name='ORCID']:text").attr('placeholder',"AUTHOR ID");
+                }
+                else if(radioValue==="e"){
+                    $("input[name='ORCID']:text").attr('placeholder',"EID");
+                }
             });
         });
     </script>
@@ -263,7 +285,10 @@
         <form class="name-search">
             <div class="block">
                 <div class="element">
-                    <input type="text" class="txt-input" name="ORCID" id="ORCID" placeholder="ORCID" />
+                    <input type="text" class="txt-input" name="ORCID" id="ORCID" placeholder="ORCID" /><br><br>
+                    <input type="radio" name="gender" id="i1" value="o" checked> ORCID <br>
+                    <input type="radio" name="gender" id="i2" value="a"> AUTHOR ID <br>
+                    <input type="radio" name="gender" id="i3" value="e"> EID <br>
                 </div>
             </div>
             <div class="block">
@@ -289,13 +314,20 @@
             var myChart = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: [{% for item in label %}
+                    labels: [
+                    {% for item in label %}
                     "{{item}}",
-                    {% endfor %}],
-                    datasets: [{% for key,value in data.items() %}
+                    {% endfor %}
+                    ],
+                    datasets: [{% for value in data %}
                         {
-                        label: "{{key}}",
-                        data: [ {% for item in value %}  {{item}},   {% endfor %} ] ,
+                        label: "{{value.name}}",
+                        data: [ {%for i in value.data%} {{i}}, {%endfor%} ] ,
+
+                        backgroundColor: 
+                            '{{value.colour}}',
+                        borderColor: 
+                            '{{value.colour}}',
                     
                         borderWidth: 1
                     },
@@ -332,7 +364,6 @@
             
         </form>
     </div>
-
 
 </body>
 

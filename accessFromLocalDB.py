@@ -1,6 +1,6 @@
 import mysql.connector as connector
 import CitationRetrieval
-
+import random
 from datetime import datetime
 
 
@@ -35,16 +35,16 @@ def updateTables():
     if currDate not in avail:
         cursor.execute('alter table report add column '+currDate+' VARCHAR(45)')
         for i in orcids:
-            print(i)
+           # print(i)
             tmp=CitationRetrieval.citeCount(i)
             cursor.execute('update report set '+currDate+' = \''+str(tmp)+'\' where orcid = \''+i+'\'')
-            print(tmp)
+            #print(tmp)
     else:
         for i in orcids:
-            print(i)
+            #print(i)
             tmp=CitationRetrieval.citeCount(i)
             cursor.execute('update report set '+currDate+' = \''+str(tmp)+'\' where orcid = \''+i+'\'')
-            print(tmp)
+            #print(tmp)
     database.commit()
 
     print("Database updated successfully! :)")
@@ -57,9 +57,11 @@ def get_label():
     for i in ret:
         #print(i[0])
         avail.append(i[0])
-    label=[]
+    print(avail)
+    label=["Origin"]
     for i in range(2,len(avail)):
         label.append(avail[i])
+    print(label)
     return label.copy()
 
 def get_formated_name(ID):
@@ -72,7 +74,7 @@ def get_formated_name(ID):
 def get_formated_data(ID):
     cursor.execute("select * from report where orcid = %s",(ID,))
     result=cursor.fetchone()
-    li=[]
+    li=[0]
     tmp=0
     #print(result)
     for i in range(2,len(result)):
@@ -84,10 +86,15 @@ def get_formated_data(ID):
 
 def formatted():
     orc=get_orrcids()
-    res={}
+    res=[]
     for i in orc:
+        r=random.randint(0,255)
+        g=random.randint(0,255)
+        b=random.randint(0,255)
         name=get_formated_name(i)
-        res[name]=get_formated_data(i)
+        data=get_formated_data(i)
+        colour="rgba({}, {}, {}, 0.5)".format(r,g,b)
+        res.append({"name":name,"data":data,"colour":colour})
     return res.copy()
 
 
@@ -108,8 +115,8 @@ def get_rowcol():
     print("returning list")
     return dat
 
-if __name__=="__main__":
-    #updateTables()
+# if __name__ == '__main__':
+#     updateTables()
     
-    print(formatted())
-    print(get_label())
+#     print(formatted())
+#     print(get_label())

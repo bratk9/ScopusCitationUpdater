@@ -99,7 +99,7 @@ def getpostmet():
                 buf.close()
                 resp=make_response(pdf)
                 resp.headers['Content-Type']="application/pdf"
-                resp.headers['Content-Disposition']="inline;filename=Citations.pdf"
+                resp.headers['Content-Disposition']="attachment;filename=Citations.pdf"
                 return resp
             else:
                 si = StringIO()
@@ -109,7 +109,7 @@ def getpostmet():
                 buf.close()
                 resp=make_response(csvfile)
                 resp.headers['Content-Type']="text/csv"
-                resp.headers['Content-Disposition']="inline;filename=Citations.csv"
+                resp.headers['Content-Disposition']="attachment;filename=Citations.csv"
                 return resp
         else:
             return render_template('uploaded.html')
@@ -120,15 +120,17 @@ def getpostmet():
 @app.route('/Search',methods=['GET'])
 def Search():
     id = request.args.get("orcid")
+    option = request.args.get("inputoptions")
     
     if(id and len(id)>0):
         res={}
-        if True:
+        
+        if option=="o":
             res=requests.get("http://api.elsevier.com/content/author",
             params={"orcid":id},
             headers={'Accept':'application/json',
             'X-ELS-APIKey': '24783270e58eb56ff94c059e8c7eb44c'})
-        elif False:
+        elif option=="a":
             res=requests.get("http://api.elsevier.com/content/author",
             params={"author_id":id},
             headers={'Accept':'application/json',
@@ -138,6 +140,7 @@ def Search():
             params={"eid":id},
             headers={'Accept':'application/json',
             'X-ELS-APIKey': '24783270e58eb56ff94c059e8c7eb44c'})
+        print("retrived ",option)
         dat=dict(res.json())
         if list(dat)[0]=="service-error":
             print(id,"error")
@@ -191,7 +194,7 @@ def Search():
                     AOE=AOE+dat['author-retrieval-response'][0]["subject-areas"]['subject-area'][i]["$"]+", "
             except:
                 AOE=+''
-            pprint(dat['author-retrieval-response'][0]['author-profile']['preferred-name'])
+            #pprint(dat['author-retrieval-response'][0]['author-profile']['preferred-name'])
             wrap={
                 "stat":"success",
                 "indn":nam,

@@ -8,6 +8,7 @@ from reportlab.platypus import Table
 from reportlab.platypus import SimpleDocTemplate
 from reportlab.platypus import TableStyle
 from reportlab.lib import colors
+from pprint import pprint
 
 ts=TableStyle([
     ('BACKGROUND',(0,0),(-1,0),colors.blue),
@@ -56,7 +57,7 @@ def getpostmet():
             buf.close()
             resp=make_response(pdf)
             resp.headers['Content-Type']="application/pdf"
-            resp.headers['Content-Disposition']="inline;filename=Citations.pdf"
+            resp.headers['Content-Disposition']="attachment;filename=Citations.pdf"
             return resp
         else:
             return render_template('upload.html')
@@ -74,15 +75,59 @@ def Search():
         if list(dat)[0]=="service-error":
             print(id,"error")
         else:
-            affiliation=dat['author-retrieval-response'][0]['author-profile']['affiliation-current']['affiliation']['ip-doc']['afdispname']
-            address=dat['author-retrieval-response'][0]['author-profile']['affiliation-current']['affiliation']['ip-doc']['address']['address-part']+','+dat['author-retrieval-response'][0]['author-profile']['affiliation-current']['affiliation']['ip-doc']['address']['city']+','+dat['author-retrieval-response'][0]['author-profile']['affiliation-current']['affiliation']['ip-doc']['address']['state']+","+dat['author-retrieval-response'][0]['author-profile']['affiliation-current']['affiliation']['ip-doc']['address']['country']+","+dat['author-retrieval-response'][0]['author-profile']['affiliation-current']['affiliation']['ip-doc']['address']['postal-code']
-            citation=dat['author-retrieval-response'][0]['coredata']['citation-count']
+            try:
+                affiliation=dat['author-retrieval-response'][0]['author-profile']['affiliation-current']['affiliation']['ip-doc']['afdispname']
+            except:
+                affiliation="Not Specified"
+
+            try:
+                address=dat['author-retrieval-response'][0]['author-profile']['affiliation-current']['affiliation']['ip-doc']['address']['address-part']
+            except:
+                address+=""
+            try:
+                address+=','+dat['author-retrieval-response'][0]['author-profile']['affiliation-current']['affiliation']['ip-doc']['address']['city']
+            except:
+                address+=""
+            try:
+                address+=','+dat['author-retrieval-response'][0]['author-profile']['affiliation-current']['affiliation']['ip-doc']['address']['state']
+            except:
+                address+=""
+            try:
+                address+=","+dat['author-retrieval-response'][0]['author-profile']['affiliation-current']['affiliation']['ip-doc']['address']['country']
+            except:
+                address+=""
+            try:
+                address+=","+dat['author-retrieval-response'][0]['author-profile']['affiliation-current']['affiliation']['ip-doc']['address']['postal-code']
+            except:
+                address+=""
+            
+            try:
+                citation=dat['author-retrieval-response'][0]['coredata']['citation-count']
+            except:
+                citation="Not Specified"
+
+
+            nam=""
+            try:
+                nam+=dat['author-retrieval-response'][0]['author-profile']['preferred-name']['given-name']+" "+dat['author-retrieval-response'][0]['author-profile']['preferred-name']['surname']
+            except:
+                try:
+                    nam+=" "+dat['author-retrieval-response'][0]['author-profile']['preferred-name']['indexed-name']
+                except:
+                    nam+=""
+            
+
+
             AOE=''
-            for i in range(len(dat['author-retrieval-response'][0]["subject-areas"]['subject-area'])):
-                AOE=AOE+dat['author-retrieval-response'][0]["subject-areas"]['subject-area'][i]["$"]+", "
+            try:
+                for i in range(len(dat['author-retrieval-response'][0]["subject-areas"]['subject-area'])):
+                    AOE=AOE+dat['author-retrieval-response'][0]["subject-areas"]['subject-area'][i]["$"]+", "
+            except:
+                AOE=+''
+            pprint(dat['author-retrieval-response'][0]['author-profile']['preferred-name'])
             wrap={
                 "stat":"success",
-                "indn":dat['author-retrieval-response'][0]['author-profile']['preferred-name']['given-name']+" "+dat['author-retrieval-response'][0]['author-profile']['preferred-name']['indexed-name'],
+                "indn":nam,
                 "aff":affiliation,
                 "addr":address,
                 "cit":citation,
@@ -94,4 +139,4 @@ def Search():
 
 
 if __name__ == '__main__':
-   app.run()
+   app.run( )
