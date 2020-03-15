@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 
@@ -168,7 +168,7 @@
     <script>
         $(document).ready(function () {
             $("#filehandled").submit(function () {
-                $('body').append('<div class="loading-overlay"><div class="loader"></div></div>')
+                $('#wait_pls').css("visibility", "visible")
             });
         });
     </script>
@@ -198,6 +198,30 @@
             })
         })
     </script>
+    
+    <script>
+        $(document).ready(function () {
+            $("#updateble").click(function () {
+                $.getJSON("http://localhost:5000/updateble", {
+                    },
+                    function (data) {
+                        if (data.result.stat === "success") {
+                            alert("Tables Updated")
+                        } else {
+                            alert("Update failed")
+                        }
+                    });
+            })
+        })
+    </script>
+
+    <script>
+        $(document).ready(function () {
+            $("#table_interface").submit(function () {
+                $('#wait_pls').css("visibility", "visible")
+            });
+        });
+    </script>
 </head>
 
 <body>
@@ -211,15 +235,16 @@
         <span>Search for citation</span>
     </div>
 
-
+    <div class="container form-div" id="wait_pls" style="visibility: hidden;">Your file is loading... Please wait...</div>
 
     <div class="container form-div">
         <form class="name-search" id="filehandled" action="http://localhost:5000/uploader" method="POST" enctype="multipart/form-data">
 
             <div class="block">
                 <div class="element">
-                    <input type="file" name="file" class="btn btn-primary" placeholder="CSV file" />
-
+                    <input type="file" name="file" class="btn btn-primary" placeholder="CSV file" /><br><br>
+                    <input type="radio" name="options" id="option1" value="p" checked> PDF <br>
+                    <input type="radio" name="options" id="option2" value="c"> CSV <br>
                 </div>
             </div>
             <div class="block">
@@ -252,6 +277,63 @@
 
 
     
+
+    {% if data and label%}
+    <div class="container form-div">
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+        <div class="name-search">
+            <div>Citation count graph</div>
+            <canvas id="myChart" width="400" height="400"></canvas>
+        <script>
+            var ctx = document.getElementById('myChart').getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [{% for item in label %}
+                    "{{item}}",
+                    {% endfor %}],
+                    datasets: [{% for key,value in data.items() %}
+                        {
+                        label: "{{key}}",
+                        data: [ {% for item in value %}  {{item}},   {% endfor %} ] ,
+                    
+                        borderWidth: 1
+                    },
+                    {% endfor %}]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    }
+                }
+            });
+        </script>
+
+        </div>
+    </div>
+    {% endif %}
+
+
+    <div class="container form-div">
+        <form id="table_interface" class="name-search" action="http://localhost:5000/getripo" method="POST">
+            <div class="block" style="width: 100%;">
+                <div class="element">
+                    <button class="btn btn-primary" type="button" id="updateble">Update Database</button>
+                    <input type="submit" class="btn btn-primary" value="Get from Database" />
+                    <a href="http://localhost:5000/chart">
+                        <button class="btn btn-primary" type="button">Show Progress Chart</button>
+                    </a>
+                </div>
+            </div>
+            
+        </form>
+    </div>
+
+
 </body>
 
 </html>

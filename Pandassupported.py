@@ -11,7 +11,8 @@ from reportlab.lib import colors
 from pprint import pprint
 import pandas as pd 
 from io import StringIO
-
+from datetime import datetime
+import accessFromLocalDB as dbhandle
 
 ts=TableStyle([
     ('BACKGROUND',(0,0),(-1,0),colors.blue),
@@ -25,23 +26,55 @@ CORS(app)
 
 @app.route('/')
 def uploadfile():
-   return render_template('upload.html')
+   return render_template('uploaded.html')
+
+@app.route("/updateble",methods=['GET'])
+def updatable():
+    wrap={}
+    try:
+        dbhandle.updateTables()
+        wrap={"stat":"success"}
+    except:
+        wrap={"stat":"failed"}
+    return jsonify( result=wrap)
+
+@app.route("/getripo",methods=['GET',"POST"])
+def getripo():
+    generated=dbhandle.get_rowcol()
+
+    si = StringIO()
+    csvwriter = csv.writer(si)
+    csvwriter.writerows(generated)
+    csvfile=si.getvalue()
+    resp=make_response(csvfile)
+    resp.headers['Content-Type']="text/csv"
+    resp.headers['Content-Disposition']="attachment;filename=Citations.csv"
+    print("File generated")
+    return resp
+    
+    
 	
 @app.route('/uploader',methods=['GET','POST'])
 def getpostmet():
     if request.method=='GET':
-        return render_template('upload.html')
+        return render_template('uploaded.html')
     elif request.method == 'POST':
         buf=io.BytesIO()
+        option = request.form['options']
         file = request.files['file']
         if file:
             file.stream.seek(0)
             myfile=file.read().decode("utf-8")
             StringData = StringIO(myfile) 
             data=pd.read_csv(StringData)
-            heading=["name","orcid","Citation"]
+            heading=["name","orcid","Citation","Updated on"]
             generated=[heading.copy()]
             data.dropna(inplace=True)
+
+            month=datetime.now().strftime('%B')
+            year=datetime.now().year
+
+            concatdate=str(month)+"_"+str(year)
             
             for index, row in data.iterrows():
                 if(row['name'] and len(row['name'])!=0 and row['orcid'] and len(row['orcid'])!=0):
@@ -54,31 +87,57 @@ def getpostmet():
                         print(row['name'],"error")
                     else:
                         print(row['name'],respdat['author-retrieval-response'][0]['coredata']['citation-count'])
-                        generated.append([row['name'],row['orcid'],respdat['author-retrieval-response'][0]['coredata']['citation-count']])
+                        generated.append([row['name'],row['orcid'],respdat['author-retrieval-response'][0]['coredata']['citation-count'],concatdate])
 
             
-            table=Table(generated)
-            table.setStyle(ts)
-            pdfcreator=SimpleDocTemplate(buf)
-            pdfcreator.build([table])
-            pdf=buf.getvalue()
-            buf.close()
-            resp=make_response(pdf)
-            resp.headers['Content-Type']="application/pdf"
-            resp.headers['Content-Disposition']="inline;filename=Citations.pdf"
-            return resp
+            if(option=="p"):
+                table=Table(generated)
+                table.setStyle(ts)
+                pdfcreator=SimpleDocTemplate(buf)
+                pdfcreator.build([table])
+                pdf=buf.getvalue()
+                buf.close()
+                resp=make_response(pdf)
+                resp.headers['Content-Type']="application/pdf"
+                resp.headers['Content-Disposition']="inline;filename=Citations.pdf"
+                return resp
+            else:
+                si = StringIO()
+                csvwriter = csv.writer(si)
+                csvwriter.writerows(generated)
+                csvfile=si.getvalue()
+                buf.close()
+                resp=make_response(csvfile)
+                resp.headers['Content-Type']="text/csv"
+                resp.headers['Content-Disposition']="inline;filename=Citations.csv"
+                return resp
         else:
-            return render_template('upload.html')
+            return render_template('uploaded.html')
         
+
+
+
 @app.route('/Search',methods=['GET'])
 def Search():
     id = request.args.get("orcid")
     
     if(id and len(id)>0):
-        res=requests.get("http://api.elsevier.com/content/author",
-        params={"orcid":id},
-        headers={'Accept':'application/json',
-        'X-ELS-APIKey': '24783270e58eb56ff94c059e8c7eb44c'})
+        res={}
+        if True:
+            res=requests.get("http://api.elsevier.com/content/author",
+            params={"orcid":id},
+            headers={'Accept':'application/json',
+            'X-ELS-APIKey': '24783270e58eb56ff94c059e8c7eb44c'})
+        elif False:
+            res=requests.get("http://api.elsevier.com/content/author",
+            params={"author_id":id},
+            headers={'Accept':'application/json',
+            'X-ELS-APIKey': '24783270e58eb56ff94c059e8c7eb44c'})
+        else:
+            res=requests.get("http://api.elsevier.com/content/author",
+            params={"eid":id},
+            headers={'Accept':'application/json',
+            'X-ELS-APIKey': '24783270e58eb56ff94c059e8c7eb44c'})
         dat=dict(res.json())
         if list(dat)[0]=="service-error":
             print(id,"error")
@@ -144,6 +203,10 @@ def Search():
             return jsonify( result=wrap)
     wrap={"stat":"failed"}
     return jsonify( result=wrap)
+
+@app.route("/chart",methods=['GET','POST'])
+def chart():
+    return render_template('uploaded.html',label=dbhandle.get_label(),data=dbhandle.formatted())
 
 
 if __name__ == '__main__':
