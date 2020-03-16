@@ -4,7 +4,7 @@ import random
 from datetime import datetime
 
 
-database = connector.connect(host='localhost',database='citations',user='root',password='root')
+database = connector.connect(host='localhost',database='citations',user='root',password='admin')
 cursor=database.cursor()
 
 def get_orrcids():
