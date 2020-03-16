@@ -28,15 +28,7 @@ CORS(app)
 def uploadfile():
    return render_template('uploaded.html')
 
-@app.route("/updateble",methods=['GET'])
-def updatable():
-    wrap={}
-    try:
-        dbhandle.updateTables()
-        wrap={"stat":"success"}
-    except:
-        wrap={"stat":"failed"}
-    return jsonify( result=wrap)
+
 
 @app.route("/getripo",methods=['GET',"POST"])
 def getripo():
@@ -51,8 +43,40 @@ def getripo():
     resp.headers['Content-Disposition']="attachment;filename=Citations.csv"
     print("File generated")
     return resp
+
+@app.route("/updateble",methods=['GET'])
+def updatable():
+    wrap={}
+    try:
+        dbhandle.updateTables()
+        wrap={"stat":"success"}
+    except:
+        wrap={"stat":"failed"}
+    return jsonify( result=wrap)
     
-    
+@app.route('/insertFaculty',methods=['GET'])
+def stor():
+    if request.method == 'GET':
+        ID = request.args.get('orcid')
+        Name = request.args.get('name')
+        try:
+            if(ID and len(ID)!=0 and Name and len(Name)!=0):
+                res=requests.get("http://api.elsevier.com/content/author",
+                                            params={"orcid":ID},
+                                            headers={'Accept':'application/json',
+                                            'X-ELS-APIKey': '24783270e58eb56ff94c059e8c7eb44c'})
+                respdat=dict(res.json())
+                if list(respdat)[0]=="service-error":
+                    print(Name ,"error")
+                    wrap={"stat":"failed"}
+                else:
+                    print(Name ,respdat['author-retrieval-response'][0]['coredata']['citation-count'])
+                    print("entering faculty")
+                    dbhandle.Enter_Faculty(str(ID),str(Name))
+                    wrap={"stat":"success"}
+        except:
+            wrap={"stat":"failed"}
+        return jsonify( result=wrap)
 	
 @app.route('/uploader',methods=['GET','POST'])
 def getpostmet():
