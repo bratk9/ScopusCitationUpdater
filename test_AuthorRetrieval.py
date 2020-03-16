@@ -2,7 +2,6 @@ import unittest
 import CitationRetrieval
 
 class TestAuthorRetrieval(unittest.TestCase):
-
     def test_author(self):
         self.assertEqual(CitationRetrieval.citeCount('0000000337624311'), 100)
         self.assertEqual(CitationRetrieval.citeCount('000000015077255X'), 0)
