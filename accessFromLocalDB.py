@@ -7,6 +7,10 @@ from datetime import datetime
 database = connector.connect(host='localhost',database='citations',user='root',password='admin')
 cursor=database.cursor()
 
+def Enter_Faculty(ID,name):
+    cursor.execute("insert into report (orcid,name) values( %s,%s)",(ID,name))
+    database.commit()
+
 def get_orrcids():
     cursor.execute('select orcid from report')
     ids=cursor.fetchall()
@@ -57,11 +61,11 @@ def get_label():
     for i in ret:
         #print(i[0])
         avail.append(i[0])
-    print(avail)
+    #print(avail)
     label=["Origin"]
     for i in range(2,len(avail)):
         label.append(avail[i])
-    print(label)
+    #print(label)
     return label.copy()
 
 def get_formated_name(ID):
@@ -79,8 +83,12 @@ def get_formated_data(ID):
     #print(result)
     for i in range(2,len(result)):
         if(i<len(result)):
-            li.append(int(result[i])-tmp)
-            tmp=int(result[i])
+            if result[i]:
+                li.append(int(result[i])-tmp)
+                tmp=int(result[i])
+            else:
+                li.append(0)
+            
     return li.copy()
 
 
@@ -116,6 +124,7 @@ def get_rowcol():
     return dat
 
 # if __name__ == '__main__':
+#     Enter_Faculty("0000-0001-9215-6122","P. Prakash")
 #     updateTables()
     
 #     print(formatted())
